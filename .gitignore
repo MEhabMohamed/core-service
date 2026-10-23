@@ -1,0 +1,8 @@
+node_modules
+dist
+.idea
+.env
+*.zip
+*.7z
+play
+docs
