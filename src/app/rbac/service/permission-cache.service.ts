@@ -1,11 +1,11 @@
 import { injectable } from "tsyringe";
-import { hours } from "../../../pkg/utils/times.utils";
+import { toMs } from "../../../pkg/utils/times";
 import { getPermissionByRoleName } from "../repository/permission.repo";
 
 @injectable()
 export class PermissionCacheService {
     private cache: Map<string, { permission: string[], cachedAt: number }> = new Map();
-    private readonly TTL = hours(1);
+    private readonly TTL = toMs.hour(1);
 
     // get or fetch if needed
     async getPermission(roleName: string): Promise<string[]> {

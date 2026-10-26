@@ -68,4 +68,28 @@ export class CustomerAddressesController {
             next(error);
         }
     }
+
+    getInternalAddress = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const address = await this.addressesService.getAddressById(Number(req.params.id));
+            if (!address) {
+                res.status(httpStatus.NOT_FOUND).json({ message: "Address not found" });
+                return;
+            }
+            sendSuccess(res, {
+                id: address.id,
+                userId: address.userId,
+                lat: Number(address.lat),
+                lng: Number(address.lng),
+                addressText: `${address.street}, ${address.city}, ${address.country}`,
+                city: address.city,
+                country: address.country,
+                building: address.building,
+                apartmentNumber: address.aparmentNumber,
+                label: address.label
+            }, httpStatus.OK);
+        } catch (error) {
+            next(error);
+        }
+    }
 }

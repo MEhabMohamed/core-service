@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 import { container } from "../di/container";
 import { Tokens } from "../di/tokens";
-import { days } from "../../pkg/utils/times.utils";
+import { toSec } from "../../pkg/utils/times";
 import { ICacheProvider } from "../../pkg/cache/cache.interface";
 
 interface IdempotencyOptions {
@@ -33,7 +33,7 @@ export function idempotency(options: IdempotencyOptions = {}) {
             }
             const originalJson = res.json.bind(res)
             res.json = function (body: any) {
-                cacheProvider.set(key, JSON.stringify(body), days(1) / 1000);
+                cacheProvider.set(key, JSON.stringify(body), toSec.day(1));
                 return originalJson(body);
             }
             next();

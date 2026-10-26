@@ -1,6 +1,7 @@
 import { Knex } from "knex";
 import { db } from "../../../lib/knex/knex";
-import { MemberBranch } from "../entity/member-branch.entity.";
+import { MemberBranch } from "../entity/member-branch.entity";
+
 
 export async function setMemberBranch(memberId: number, rows: MemberBranch[], trx?: Knex.Transaction) {
     const query = trx || db;

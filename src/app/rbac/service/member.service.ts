@@ -21,9 +21,10 @@ import {
     updateMember
 } from "../repository/restaurant-member.repo";
 import { MemberStatus } from "../enums";
-import { MemberBranch } from "../entity/member-branch.entity.";
+import { MemberBranch } from "../entity/member-branch.entity";
 import { countBranchesByIdsAndRestaurantId, setMemberBranch } from "../repository/member-branch.repo";
-import { mins } from "../../../pkg/utils/times.utils";
+
+import { toMs } from "../../../pkg/utils/times";
 import { createPasswordReset } from "../../auth/repository/password-reset.repo";
 import { generateOTP, hashOTP } from "../../auth/utils";
 import { getPermissionsDetailsByRoleName } from "../repository/permission.repo";
@@ -102,7 +103,7 @@ export class MemberService {
             await createPasswordReset({
                 userId: user.id,
                 otpHash: hashedOtp,
-                expiresAt: new Date(Date.now() + mins(10)),
+                expiresAt: new Date(Date.now() + toMs.minute(10)),
                 createdAt: new Date()
             }, trx)
 

@@ -6,9 +6,15 @@ import { Tokens } from "../../lib/di/tokens";
 import { BranchController } from "./controller/branch.controller";
 import { withCache } from "../../lib/cache/withCache";
 
+import { requireInternalApiKey } from "../../lib/auth/api-key";
+
 export const branchRoutes = Router();
 
 const branchController = container.resolve<BranchController>(Tokens.BranchController);
+
+branchRoutes.get('/internal/branches', requireInternalApiKey, branchController.getInternalBranches);
+branchRoutes.get('/internal/branches/:id', requireInternalApiKey, branchController.getInternalBranch);
+
 
 branchRoutes.post('/restaurants/:restaurantId/branches',
     authenticate,

@@ -60,4 +60,25 @@ export class BranchController {
             next(error)
         }
     }
+
+    getInternalBranch = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const branch = await this.branchService.getInternalBranch(Number(req.params.id));
+            sendSuccess(res, branch, httpStatus.OK);
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    getInternalBranches = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const raw = typeof req.query.ids === "string" ? req.query.ids : "";
+            const ids = raw.split(",").map((s) => Number(s.trim())).filter((n) => Number.isInteger(n) && n > 0);
+            const branches = await this.branchService.getInternalBranches(ids);
+            sendSuccess(res, branches, httpStatus.OK);
+        } catch (error) {
+            next(error);
+        }
+    }
 }
+

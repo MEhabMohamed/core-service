@@ -33,3 +33,29 @@ export async function updateProductBranchDetails(productId: number, branchId: nu
         .returning(PRODUCT_BRANCH_DETAILS_COLUMNS);
     return toEntity(row);
 }
+
+export async function findProductsForBranch(branchId: number, productIds: number[], conn: Knex = db) {
+    const rows = await conn('product_branch_details as pbd')
+        .join('products as p', 'pbd.product_id', 'p.id')
+        .where('pbd.branch_id', branchId)
+        .whereIn('pbd.product_id', productIds)
+        .whereNull('p.deleted_at')
+        .select(
+            'pbd.product_id as productId',
+            'p.name',
+            'p.image_url as imageUrl',
+            'pbd.price',
+            'pbd.stock',
+            'pbd.is_available as isAvailable'
+        );
+
+    return rows.map((r: any) => ({
+        productId: Number(r.productId),
+        name: r.name,
+        imageUrl: r.imageUrl || null,
+        price: Number(r.price),
+        stock: Number(r.stock),
+        isAvailable: Boolean(r.isAvailable)
+    }));
+}
+

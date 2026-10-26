@@ -1,6 +1,6 @@
 import { inject, injectable } from "tsyringe";
 import { db } from "../../../lib/knex/knex";
-import { mins } from "../../../pkg/utils/times.utils";
+import { toMs } from "../../../pkg/utils/times";
 import { findBranchesByMemberId } from "../../rbac/repository/member-branch.repo";
 import { activateMember, findRestaurantMemberWithRole } from "../../rbac/repository/restaurant-member.repo";
 import { MemberService } from "../../rbac/service/member.service";
@@ -175,7 +175,7 @@ export class AuthService {
         await createPasswordReset({
             userId: user.id,
             otpHash: hashedOtp,
-            expiresAt: new Date(Date.now() + mins(10)),
+            expiresAt: new Date(Date.now() + toMs.minute(10)),
             createdAt: new Date()
         });
 

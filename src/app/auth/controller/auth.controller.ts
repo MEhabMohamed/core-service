@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import { AuthService } from "../service/auth.service";
 import { validateBody } from "../../../lib/validation/validate";
 import { ForgotPasswordDTO, LoginDTO, RegisterDTO, ResetPasswordDTO } from "../dto/auth.dto";
-import { days, hours } from "../../../pkg/utils/times.utils";
+import { toMs } from "../../../pkg/utils/times";
 import { env } from "../../../lib/config/env";
 import { NoRefreshTokenFound } from "../errors";
 import { inject, injectable } from "tsyringe";
@@ -79,7 +79,7 @@ export class AuthController {
             res.cookie("access_token", result.accessToken, {
                 httpOnly: true,
                 secure: env.nodeEnv === "production",
-                maxAge: hours(1)
+                maxAge: toMs.hour(1)
             });
             return sendSuccess(res, { message: "Access token refreshed successfully", data: result }, httpStatus.OK);
         } catch (error) {

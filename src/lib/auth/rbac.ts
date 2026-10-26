@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { NotAuthinticated } from "../errors";
+import { NotAuthenticated } from "../errors";
 import { SystemRole } from "../../app/user/enums";
 import { PermissionCacheService } from "../../app/rbac/service/permission-cache.service";
 import { Tokens } from "../di/tokens";
@@ -15,8 +15,9 @@ export function rbac(options: RBACOptions) {
     return async (req: Request, res: Response, next: NextFunction) => {
         try {
             if (!req.user) {
-                throw NotAuthinticated
+                throw NotAuthenticated;
             }
+
 
             const { resource, action, allowSystemAdmin = true } = options
 
@@ -61,14 +62,14 @@ export function requireRestaurantMember(paramName: string = "restaurantId") {
                 })
             }
 
+            if (req.user?.role === SystemRole.SYSTEM_ADMIN) {
+                return next()
+            }
+
             if (Number(req.user?.restaurantId) !== Number(restaurantId)) {
                 return res.status(403).json({
                     message: "Permission denied"
                 })
-            }
-
-            if (req.user?.role === SystemRole.SYSTEM_ADMIN) {
-                return next()
             }
 
             next();

@@ -28,7 +28,12 @@ const schema = z.object({
     EMAIL_USER: z.string(),
     EMAIL_PASS: z.string(),
     EMAIL_HOST: z.string().default("smtp.gmail.com"),
-    EMAIL_PORT: z.string().default("587")
+    EMAIL_PORT: z.string().default("587"),
+    INTERNAL_API_KEY: z.string().default("my-internal-api-key"),
+    RABBITMQ_URL: z.string().default("amqp://guest:guest@localhost:5672"),
+    RABBITMQ_CORE_EVENTS_EXCHANGE: z.string().default("core.events"),
+    OUTBOX_DRAIN_CRON: z.string().default("* * * * * *"),
+    OUTBOX_BATCH_SIZE: z.string().default("50")
 });
 
 const parsed = schema.parse(process.env);
@@ -65,6 +70,16 @@ export const env = {
         pass: parsed.EMAIL_PASS,
         host: parsed.EMAIL_HOST,
         port: Number(parsed.EMAIL_PORT)
+    },
+    internal: {
+        apiKey: parsed.INTERNAL_API_KEY
+    },
+    rabbitmq: {
+        url: parsed.RABBITMQ_URL,
+        exchange: parsed.RABBITMQ_CORE_EVENTS_EXCHANGE
+    },
+    outbox: {
+        drainCron: parsed.OUTBOX_DRAIN_CRON,
+        batchSize: Number(parsed.OUTBOX_BATCH_SIZE)
     }
-}
-
+};

@@ -81,4 +81,14 @@ export class MemberController {
             next(error)
         }
     }
+
+    getInternalRolePermissions = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const role = (req.query.role || req.params.role) as string;
+            const result = await this.memberService.getRolePermissions(role);
+            sendSuccess(res, result, httpStatus.OK);
+        } catch (error) {
+            next(error);
+        }
+    }
 }

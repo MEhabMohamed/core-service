@@ -26,4 +26,21 @@ export class UserController {
             next(error);
         }
     }
+
+    getInternalAgent = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const agent = await this.userService.getByUserId(Number(req.params.id));
+            if (!agent) {
+                res.status(httpStatus.NOT_FOUND).json({ message: "Agent not found" });
+                return;
+            }
+            sendSuccess(res, {
+                id: agent.id,
+                name: agent.name,
+                phone: agent.phone
+            }, httpStatus.OK);
+        } catch (error) {
+            next(error);
+        }
+    }
 }

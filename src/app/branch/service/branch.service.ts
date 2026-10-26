@@ -3,8 +3,11 @@ import { SystemRole } from "../../user/enums";
 import { CreateBranchDTO, UpdateBranchDTO } from "../dto/branch.dto";
 import { Branch } from "../entity/branch.entity";
 import { BranchNotFoundError, RestaurantNotFoundError, UnauthorizedError } from "../errors";
-import { createBranch, findBranchById, findByRestaurantId, findNearByBranches, updateBranch, updateBranchStatus } from "../repositoty/branch.repo";
+import { createBranch, findBranchById, findByRestaurantId, findNearByBranches, updateBranch, updateBranchStatus, findInternalBranchById, findInternalBranchesByIds } from "../repository/branch.repo";
 import { injectable } from "tsyringe";
+
+import { db } from "../../../lib/knex/knex";
+import { insertOutboxEvent } from "../../../lib/events/outbox.service";
 
 @injectable()
 export class BranchService {
@@ -67,19 +70,30 @@ export class BranchService {
 
         const now = new Date();
 
-        const updatedBranch = await updateBranch(branchId, {
-            countryCode: data.countryCode,
-            addressText: data.addressText,
-            label: data.label,
-            lat: data.lat,
-            lng: data.lng,
-            opensAt: data.opensAt,
-            closesAt: data.closesAt,
-            updatedAt: now,
-            deliveryRadius: data.deliveryRadius,
-            currency: data.currency,
-            commission: data.commission
-        })
+        const updatedBranch = await db.transaction(async (trx) => {
+            const res = await updateBranch(branchId, {
+                countryCode: data.countryCode,
+                addressText: data.addressText,
+                label: data.label,
+                lat: data.lat,
+                lng: data.lng,
+                opensAt: data.opensAt,
+                closesAt: data.closesAt,
+                updatedAt: now,
+                deliveryRadius: data.deliveryRadius,
+                currency: data.currency,
+                commission: data.commission
+            }, trx);
+
+            await insertOutboxEvent(trx, {
+                aggregateType: "branch",
+                aggregateId: branchId,
+                eventType: "branch.updated",
+                payload: { branchId }
+            });
+
+            return res;
+        });
 
         return updatedBranch;
     }
@@ -92,7 +106,34 @@ export class BranchService {
         if (userRole !== SystemRole.SYSTEM_ADMIN) {
             throw UnauthorizedError;
         }
-        const updatedBranch = await updateBranchStatus(branchId, commission, isActive);
+
+        const updatedBranch = await db.transaction(async (trx) => {
+            const res = await updateBranchStatus(branchId, commission, isActive, trx);
+
+            await insertOutboxEvent(trx, {
+                aggregateType: "branch",
+                aggregateId: branchId,
+                eventType: isActive ? "branch.updated" : "branch.deactivated",
+                payload: { branchId, isActive }
+            });
+
+            return res;
+        });
+
         return updatedBranch;
     }
+
+    getInternalBranch = async (branchId: number) => {
+        const branch = await findInternalBranchById(branchId);
+        if (!branch) {
+            throw BranchNotFoundError;
+        }
+        return branch;
+    }
+
+    getInternalBranches = async (branchIds: number[]) => {
+        if (branchIds.length === 0) return [];
+        return await findInternalBranchesByIds(branchIds);
+    }
 }
+

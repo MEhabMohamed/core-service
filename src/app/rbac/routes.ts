@@ -5,9 +5,14 @@ import { Tokens } from "../../lib/di/tokens";
 import { MemberController } from "./controller/member.controller";
 import { container } from "../../lib/di/container";
 
+import { requireInternalApiKey } from "../../lib/auth/api-key";
+
 export const rbacRoutes = Router();
 
 const memberController = container.resolve<MemberController>(Tokens.MemberController);
+
+rbacRoutes.get("/internal/rbac/permissions", requireInternalApiKey, memberController.getInternalRolePermissions);
+
 
 rbacRoutes.post("/restaurants/:restaurantId/members",
     authenticate,

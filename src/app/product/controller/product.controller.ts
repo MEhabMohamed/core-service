@@ -2,6 +2,7 @@ import { Response, Request, NextFunction } from "express";
 import { ProductService } from "../service/product.service";
 import { validateBody } from "../../../lib/validation/validate";
 import { CreateProductDTO, UpdateProductDTO } from "../dto/product.dto";
+import { InvalidReserveItemsError } from "../errors";
 import { SystemRole } from "../../user/enums";
 import { injectable, inject } from "tsyringe";
 import { Tokens } from "../../../lib/di/tokens";
@@ -91,4 +92,45 @@ export class ProductController {
             next(error)
         }
     }
+
+    getInternalBranchProducts = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const branchId = Number(req.params.id);
+            const idsStr = String(req.query.ids || "");
+            const productIds = idsStr.split(",").map(id => Number(id.trim())).filter(id => !isNaN(id) && id > 0);
+            const products = await this.productService.findProductsForBranch(branchId, productIds);
+            sendSuccess(res, products, httpStatus.OK);
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    reserveStock = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const branchId = Number(req.params.id);
+            const items = req.body?.items;
+            if (!Array.isArray(items) || items.length === 0) {
+                throw InvalidReserveItemsError;
+            }
+            const result = await this.productService.reserveStock(branchId, items);
+            sendSuccess(res, result, httpStatus.OK);
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    releaseStock = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const branchId = Number(req.params.id);
+            const items = req.body?.items;
+            if (!Array.isArray(items) || items.length === 0) {
+                throw InvalidReserveItemsError;
+            }
+            const result = await this.productService.releaseStock(branchId, items);
+            sendSuccess(res, result, httpStatus.OK);
+        } catch (error) {
+            next(error);
+        }
+    }
 }
+

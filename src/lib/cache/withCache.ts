@@ -2,9 +2,9 @@ import { NextFunction, Request, Response } from "express";
 import { container } from "../di/container";
 import { Tokens } from "../di/tokens";
 import { ICacheProvider } from "../../pkg/cache/cache.interface";
-import { hours } from "../../pkg/utils/times.utils";
+import { toSec } from "../../pkg/utils/times";
 
-export function withCache(ttl: number = hours(1) / 1000, userScoped: boolean = false) {
+export function withCache(ttl: number = toSec.hour(1), userScoped: boolean = false) {
     return async function (req: Request, res: Response, next: NextFunction) {
         try {
             const cacheProvider: ICacheProvider = container.resolve(Tokens.CacheProvider);

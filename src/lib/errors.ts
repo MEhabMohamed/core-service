@@ -1,3 +1,4 @@
 import { AppError } from "./error/AppError";
 
-export const NotAuthinticated = new AppError("User not authenticated", 403);
+export const NotAuthenticated = new AppError("User not authenticated", 401);
+export const NotAuthinticated = NotAuthenticated;

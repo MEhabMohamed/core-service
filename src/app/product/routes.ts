@@ -5,9 +5,17 @@ import { container } from "../../lib/di/container";
 import { Tokens } from "../../lib/di/tokens";
 import { ProductController } from "./controller/product.controller";
 
+import { requireInternalApiKey } from "../../lib/auth/api-key";
+
 export const productRoutes = Router();
 
 const productController = container.resolve<ProductController>(Tokens.ProductController);
+
+productRoutes.get('/internal/branches/:id/products', requireInternalApiKey, productController.getInternalBranchProducts);
+productRoutes.post('/internal/branches/:id/reserve-stock', requireInternalApiKey, productController.reserveStock);
+productRoutes.post('/internal/branches/:id/release-stock', requireInternalApiKey, productController.releaseStock);
+
+
 
 productRoutes.post("/restaurants/:restaurantId/products",
     authenticate,
