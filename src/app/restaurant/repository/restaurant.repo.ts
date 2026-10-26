@@ -57,6 +57,12 @@ export async function findAllRestaurants(params: PaginationParams, filters: Filt
     return rows.map(toEntity);
 }
 
+export async function findRestaurantsByIds(ids: number[]): Promise<Restaurant[]> {
+    if (ids.length === 0) return [];
+    const rows = await db("restaurants").select(RESTAURANT_COLUMNS).whereIn("id", ids);
+    return rows.map(toEntity);
+}
+
 export async function findRestaurantById(id: number): Promise<Restaurant | undefined> {
     const [row] = await db('restaurants')
         .select(RESTAURANT_COLUMNS)
@@ -77,8 +83,8 @@ export async function updateRestaurant(id: number, data: UpdateRestaurantDTO) {
     return toEntity(row);
 }
 
-export async function updateRestaurantStatus(id: number, status: RestaurantStatus) {
-    const [row] = await db('restaurants')
+export async function updateRestaurantStatus(id: number, status: RestaurantStatus, conn: Knex = db) {
+    const [row] = await conn('restaurants')
         .where({ id })
         .update({
             status: status,

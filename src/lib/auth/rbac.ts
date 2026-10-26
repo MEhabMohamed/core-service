@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { NotAuthenticated } from "../errors";
+import { NotAuthenticated } from "../auth/errors";
 import { SystemRole } from "../../app/user/enums";
 import { PermissionCacheService } from "../../app/rbac/service/permission-cache.service";
 import { Tokens } from "../di/tokens";

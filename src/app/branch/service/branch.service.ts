@@ -1,13 +1,26 @@
-import { findRestaurantById } from "../../restaurant/repository/restaurant.repo";
+import { findRestaurantById, findRestaurantsByIds } from "../../restaurant/repository/restaurant.repo";
 import { SystemRole } from "../../user/enums";
-import { CreateBranchDTO, UpdateBranchDTO } from "../dto/branch.dto";
+import { CreateBranchDTO, UpdateBranchDTO, UpdateBranchStatusDTO } from "../dto/branch.dto";
 import { Branch } from "../entity/branch.entity";
-import { BranchNotFoundError, RestaurantNotFoundError, UnauthorizedError } from "../errors";
-import { createBranch, findBranchById, findByRestaurantId, findNearByBranches, updateBranch, updateBranchStatus, findInternalBranchById, findInternalBranchesByIds } from "../repository/branch.repo";
+import { BranchNotFoundError } from "../errors";
+import {
+    createBranch,
+    findBranchById,
+    findByRestaurantId,
+    findNearByBranches,
+    updateBranch,
+    updateBranchStatus,
+    findBranchesByIds
+} from "../repository/branch.repo";
 import { injectable } from "tsyringe";
 
 import { db } from "../../../lib/knex/knex";
-import { insertOutboxEvent } from "../../../lib/events/outbox.service";
+import { insertOutboxEvent } from "../../../lib/events/outbox.repo";
+import { EVENT_TYPES } from "../../../lib/events/event-types";
+import { RestaurantNotFoundError } from "../../restaurant/errors";
+import { UnAuthorisedError } from "../../../lib/auth/errors";
+import { BranchWithRestaurant } from "../types";
+import { cacheProvider } from "../../../lib/cache/init";
 
 @injectable()
 export class BranchService {
@@ -23,7 +36,7 @@ export class BranchService {
             throw RestaurantNotFoundError;
         }
         if (userRole !== SystemRole.SYSTEM_ADMIN && Number(restaurant.ownerId) !== Number(userId)) {
-            throw UnauthorizedError;
+            throw UnAuthorisedError;
         }
 
         const now = new Date();
@@ -49,8 +62,38 @@ export class BranchService {
     }
 
     findByRestaurantId = async (restaurantId: number) => {
-        const rows = await findByRestaurantId(restaurantId);
-        return rows;
+        return await findByRestaurantId(restaurantId);
+    }
+
+    findByIdWithRestaurant = async (branchId: number): Promise<BranchWithRestaurant | null> => {
+        const branch = await findBranchById(branchId);
+        if (!branch) return null;
+        const restaurant = await findRestaurantById(branch.restaurantId);
+        if (!restaurant) return null;
+        return {
+            branch,
+            restaurantStatus: restaurant.status,
+            restaurantOwnerId: Number(restaurant.ownerId),
+        };
+    }
+
+    findByIdsWithRestaurant = async (branchIds: number[]): Promise<BranchWithRestaurant[]> => {
+        if (branchIds.length === 0) return [];
+        const branches = await findBranchesByIds(branchIds);
+        if (branches.length === 0) return [];
+        const restaurants = await findRestaurantsByIds(Array.from(new Set(branches.map((b) => b.restaurantId))));
+        const byId = new Map(restaurants.map((r) => [Number(r.id), r]));
+        const out: BranchWithRestaurant[] = [];
+        for (const branch of branches) {
+            const restaurant = byId.get(Number(branch.restaurantId));
+            if (!restaurant) continue;
+            out.push({
+                branch,
+                restaurantStatus: restaurant.status,
+                restaurantOwnerId: Number(restaurant.ownerId),
+            });
+        }
+        return out;
     }
 
     update = async (branchId: number, data: UpdateBranchDTO, userRole: SystemRole, userId: number) => {
@@ -65,75 +108,56 @@ export class BranchService {
         }
 
         if (userRole !== SystemRole.SYSTEM_ADMIN && Number(restaurant.ownerId) !== Number(userId)) {
-            throw UnauthorizedError;
+            throw UnAuthorisedError;
         }
 
-        const now = new Date();
-
-        const updatedBranch = await db.transaction(async (trx) => {
-            const res = await updateBranch(branchId, {
-                countryCode: data.countryCode,
-                addressText: data.addressText,
-                label: data.label,
-                lat: data.lat,
-                lng: data.lng,
-                opensAt: data.opensAt,
-                closesAt: data.closesAt,
-                updatedAt: now,
-                deliveryRadius: data.deliveryRadius,
-                currency: data.currency,
-                commission: data.commission
-            }, trx);
+        const trx = await db.transaction();
+        try {
+            const res = await updateBranch(branchId, data, trx);
 
             await insertOutboxEvent(trx, {
                 aggregateType: "branch",
                 aggregateId: branchId,
-                eventType: "branch.updated",
+                eventType: EVENT_TYPES.BRANCH_UPDATED,
                 payload: { branchId }
             });
-
+            await trx.commit();
+            await cacheProvider.del(`GET:/api/internal/branches/${branchId}`);
             return res;
-        });
-
-        return updatedBranch;
+        } catch (error) {
+            await trx.rollback();
+            throw error;
+        }
     }
 
-    updateStatus = async (branchId: number, commission: number, isActive: boolean, userRole: SystemRole) => {
+    updateStatus = async (branchId: number, data: UpdateBranchStatusDTO, userRole: SystemRole) => {
+
+        if (userRole !== SystemRole.SYSTEM_ADMIN) {
+            throw UnAuthorisedError;
+        }
+
         const branch = await findBranchById(branchId);
         if (!branch) {
             throw BranchNotFoundError;
         }
-        if (userRole !== SystemRole.SYSTEM_ADMIN) {
-            throw UnauthorizedError;
-        }
 
-        const updatedBranch = await db.transaction(async (trx) => {
-            const res = await updateBranchStatus(branchId, commission, isActive, trx);
+        const trx = await db.transaction();
+        try {
+            const res = await updateBranchStatus(branchId, data, trx);
 
             await insertOutboxEvent(trx, {
                 aggregateType: "branch",
                 aggregateId: branchId,
-                eventType: isActive ? "branch.updated" : "branch.deactivated",
-                payload: { branchId, isActive }
+                eventType: data.isActive ? EVENT_TYPES.BRANCH_UPDATED : EVENT_TYPES.BRANCH_DEACTIVATED,
+                payload: { branchId }
             });
-
+            await trx.commit();
+            await cacheProvider.del(`GET:/api/internal/branches/${branchId}`);
             return res;
-        });
-
-        return updatedBranch;
-    }
-
-    getInternalBranch = async (branchId: number) => {
-        const branch = await findInternalBranchById(branchId);
-        if (!branch) {
-            throw BranchNotFoundError;
+        } catch (error) {
+            await trx.rollback();
+            throw error;
         }
-        return branch;
-    }
-
-    getInternalBranches = async (branchIds: number[]) => {
-        if (branchIds.length === 0) return [];
-        return await findInternalBranchesByIds(branchIds);
     }
 }
 

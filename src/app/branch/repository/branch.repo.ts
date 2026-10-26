@@ -1,6 +1,7 @@
 import { Knex } from "knex";
 import { Branch } from "../entity/branch.entity";
 import { db } from "../../../lib/knex/knex";
+import { UpdateBranchStatusDTO } from "../dto/branch.dto";
 
 const BRANCH_COLUMNS = [
     'id',
@@ -140,106 +141,26 @@ export async function updateBranch(branchId: number, data: Partial<Branch>, conn
     return toEntity(row);
 }
 
-export async function findBranchById(branchId: number, conn: Knex = db) {
-    const [row] = await conn('restaurant_branches')
-        .where({ id: branchId })
-        .select(BRANCH_COLUMNS);
-
-    return toEntity(row);
+export async function findBranchById(id: number): Promise<Branch | undefined> {
+    const row = await db("restaurant_branches").select(BRANCH_COLUMNS).where("id", id).first();
+    return row ? toEntity(row) : undefined;
 }
 
-export async function updateBranchStatus(branchId: number, commission: number, isActive: boolean, conn: Knex = db) {
+export async function findBranchesByIds(ids: number[]): Promise<Branch[]> {
+    if (ids.length === 0) return [];
+    const rows = await db("restaurant_branches").select(BRANCH_COLUMNS).whereIn("id", ids);
+    return rows.map(toEntity);
+}
+
+export async function updateBranchStatus(branchId: number, data: UpdateBranchStatusDTO, conn: Knex = db) {
     const [row] = await conn('restaurant_branches')
         .where({ id: branchId })
         .update({
-            is_active: isActive,
-            commission,
+            is_active: data.isActive,
+            commission: data.commission,
             updated_at: new Date()
         })
         .returning(BRANCH_COLUMNS);
 
     return toEntity(row);
 }
-
-export async function findInternalBranchById(branchId: number, conn: Knex = db) {
-    const row = await conn('restaurant_branches as b')
-        .join('restaurants as r', 'b.restaurant_id', 'r.id')
-        .where('b.id', branchId)
-        .select(
-            'b.id',
-            'b.country_code as region',
-            'b.restaurant_id as restaurantId',
-            'r.status as restaurantStatus',
-            'r.owner_id as restaurantOwnerId',
-            'b.accept_orders as acceptOrders',
-            'b.is_active as isActive',
-            'b.delivery_fee as deliveryFee',
-            'b.commission as commissionBps',
-            'b.currency',
-            'b.lat',
-            'b.lng',
-            'b.label as name',
-            'b.address_text as addressText'
-        )
-        .first();
-
-    if (!row) return null;
-    return {
-        id: Number(row.id),
-        region: (row.region || '').toLowerCase(),
-        restaurantId: Number(row.restaurantId),
-        restaurantOwnerId: Number(row.restaurantOwnerId),
-        restaurantStatus: row.restaurantStatus,
-        acceptOrders: Boolean(row.acceptOrders),
-        isActive: Boolean(row.isActive),
-        deliveryFee: Number(row.deliveryFee || 0),
-        commissionBps: Number(row.commissionBps || 0),
-        currency: row.currency,
-        lat: Number(row.lat),
-        lng: Number(row.lng),
-        name: row.name,
-        addressText: row.addressText
-    };
-}
-
-export async function findInternalBranchesByIds(branchIds: number[], conn: Knex = db) {
-    if (branchIds.length === 0) return [];
-    const rows = await conn('restaurant_branches as b')
-        .join('restaurants as r', 'b.restaurant_id', 'r.id')
-        .whereIn('b.id', branchIds)
-        .select(
-            'b.id',
-            'b.country_code as region',
-            'b.restaurant_id as restaurantId',
-            'r.status as restaurantStatus',
-            'r.owner_id as restaurantOwnerId',
-            'b.accept_orders as acceptOrders',
-            'b.is_active as isActive',
-            'b.delivery_fee as deliveryFee',
-            'b.commission as commissionBps',
-            'b.currency',
-            'b.lat',
-            'b.lng',
-            'b.label as name',
-            'b.address_text as addressText'
-        );
-
-    return rows.map((row) => ({
-        id: Number(row.id),
-        region: (row.region || '').toLowerCase(),
-        restaurantId: Number(row.restaurantId),
-        restaurantOwnerId: Number(row.restaurantOwnerId),
-        restaurantStatus: row.restaurantStatus,
-        acceptOrders: Boolean(row.acceptOrders),
-        isActive: Boolean(row.isActive),
-        deliveryFee: Number(row.deliveryFee || 0),
-        commissionBps: Number(row.commissionBps || 0),
-        currency: row.currency,
-        lat: Number(row.lat),
-        lng: Number(row.lng),
-        name: row.name,
-        addressText: row.addressText
-    }));
-}
-
-

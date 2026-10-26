@@ -1,4 +1,4 @@
-import { IsBoolean, IsEnum, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from "class-validator";
+import { IsBoolean, IsEnum, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, Max, Min } from "class-validator";
 import { Currency } from "../enums";
 
 export class CreateBranchDTO {
@@ -83,4 +83,16 @@ export class UpdateBranchDTO {
     @IsBoolean()
     @IsOptional()
     isActive?: boolean;
+}
+
+export class UpdateBranchStatusDTO {
+    @IsOptional()
+    @IsBoolean()
+    isActive?: boolean;
+
+    @IsOptional()
+    @IsNumber()
+    @Min(0)
+    @Max(100)
+    commission?: number;
 }

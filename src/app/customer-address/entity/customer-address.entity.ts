@@ -8,7 +8,7 @@ export class CustomerAddresses {
     city!: string;
     street!: string;
     building: string | null;
-    aparmentNumber: string | null;
+    apartmentNumber: string | null;
     type!: AddressType;
     lat!: number;
     lng!: number;
@@ -23,7 +23,7 @@ export class CustomerAddresses {
         this.city = data.city!;
         this.street = data.street!;
         this.building = data.building ?? null;
-        this.aparmentNumber = data.aparmentNumber ?? null;
+        this.apartmentNumber = data.apartmentNumber ?? null;
         this.type = data.type!;
         this.lat = data.lat!;
         this.lng = data.lng!;

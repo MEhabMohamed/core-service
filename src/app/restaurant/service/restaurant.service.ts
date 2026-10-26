@@ -14,11 +14,14 @@ import { UserAlreadyExistError } from "../../auth/errors";
 import { createAccessToken, createRefreshToken } from "../../auth/utils";
 import { db } from "../../../lib/knex/knex";
 import { SystemRole } from "../../user/enums";
-import { RestaurantNotFoundError, UnauthorizedError } from "../../branch/errors";
 import { inject, injectable } from "tsyringe";
 import { Tokens } from "../../../lib/di/tokens";
 import { UserService } from "../../user/service/user.service";
 import { buildPaginationLimit, FilterParams, PaginationParams } from "../../../lib/http/pagination/cursor-pagination";
+import { OwnerAlreadyExistsError, RestaurantNotFoundError } from "../errors";
+import { UnAuthorisedError } from "../../../lib/auth/errors";
+import { insertOutboxEvent } from "../../../lib/events/outbox.repo";
+import { EVENT_TYPES } from "../../../lib/events/event-types";
 
 @injectable()
 export class RestaurantService {
@@ -42,12 +45,12 @@ export class RestaurantService {
 
     createWithOwner = async (role: SystemRole, data: CreateRestaurantDTO) => {
         if (role !== SystemRole.SYSTEM_ADMIN) {
-            throw UnauthorizedError
+            throw UnAuthorisedError
         }
 
         const existing = await findUserExistsByEmailOrPhone(data.owner.email, data.owner.phone);
 
-        if (existing) throw UserAlreadyExistError;
+        if (existing) throw OwnerAlreadyExistsError;
 
         const now = new Date();
         const trx = await db.transaction();
@@ -125,19 +128,35 @@ export class RestaurantService {
         if (!restaurant) throw RestaurantNotFoundError;
 
         if (role !== SystemRole.SYSTEM_ADMIN && Number(userId) !== Number(restaurant.ownerId)) {
-            throw UnauthorizedError
+            throw UnAuthorisedError
         }
         return await updateRestaurant(id, data);
     }
 
     updateStatus = async (id: number, data: updateRestaurantStatusDTO, role: SystemRole) => {
         if (role !== SystemRole.SYSTEM_ADMIN) {
-            throw UnauthorizedError
+            throw UnAuthorisedError;
         }
 
-        const restaurant = this.findRestaurantById(id);
+        const restaurant = await this.findRestaurantById(id);
         if (!restaurant) throw RestaurantNotFoundError;
 
-        return await updateRestaurantStatus(id, data.status);
+        const trx = await db.transaction();
+        try {
+            const updated = await updateRestaurantStatus(id, data.status, trx);
+            if (data.status === "suspended") {
+                await insertOutboxEvent(trx, {
+                    aggregateType: "restaurants",
+                    aggregateId: id,
+                    eventType: EVENT_TYPES.RESTAURANT_SUSPENDED,
+                    payload: { restaurantId: id },
+                });
+            }
+            await trx.commit();
+            return updated;
+        } catch (err) {
+            await trx.rollback();
+            throw err;
+        }
     }
 }

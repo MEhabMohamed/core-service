@@ -1,5 +1,5 @@
 import { db } from "../../../lib/knex/knex";
-import { CustomerAddresses } from "../entity/addresses.entity";
+import { CustomerAddresses } from "../entity/customer-address.entity";
 
 const ADDRESS_COLUMNS = [
     "id",
@@ -26,7 +26,7 @@ function toEntity(row: any): CustomerAddresses {
         city: row.city,
         street: row.street,
         building: row.building,
-        aparmentNumber: row.aparment_number,
+        apartmentNumber: row.aparment_number,
         type: row.type,
         lat: row.lat,
         lng: row.lng,
@@ -45,7 +45,7 @@ export async function createAddress(address: Partial<CustomerAddresses>): Promis
             city: address.city,
             street: address.street,
             building: address.building,
-            aparment_number: address.aparmentNumber,
+            aparment_number: address.apartmentNumber,
             type: address.type,
             lat: address.lat,
             lng: address.lng,
@@ -63,9 +63,11 @@ export async function findAddressById(id: number): Promise<CustomerAddresses | u
     return row ? toEntity(row) : undefined;
 }
 
-export async function getAllCustomerAddresses(): Promise<CustomerAddresses[]> {
+export async function findAddressesByUserId(userId: number): Promise<CustomerAddresses[]> {
     const rows = await db("customer_addresses")
         .select(ADDRESS_COLUMNS)
+        .where("user_id", userId);
+
     return rows.map(toEntity);
 }
 
@@ -78,7 +80,7 @@ export async function updateUserAddress(id: number, data: Partial<CustomerAddres
             city: data.city,
             street: data.street,
             building: data.building,
-            aparment_number: data.aparmentNumber,
+            aparment_number: data.apartmentNumber,
             type: data.type,
             lat: data.lat,
             lng: data.lng,
@@ -88,21 +90,15 @@ export async function updateUserAddress(id: number, data: Partial<CustomerAddres
     return row ? toEntity(row) : undefined;
 }
 
-
-export async function updateUserDefaultAddress(id: number): Promise<CustomerAddresses | undefined> {
-    const [row] = await db("customer_addresses")
-        .where({ id })
-        .update({
-            is_default: true
-        })
-        .returning(ADDRESS_COLUMNS);
-    return row ? toEntity(row) : undefined;
+export async function clearDefaultByUserId(userId: number): Promise<void> {
+    await db("customer_addresses")
+        .where("user_id", userId)
+        .where("is_default", true)
+        .update({ is_default: false });
 }
 
 export async function deleteAddress(id: number) {
-    const [row] = await db("customer_addresses")
+    await db("customer_addresses")
         .where({ id })
-        .delete()
-        .returning(ADDRESS_COLUMNS);
-    return row ? toEntity(row) : undefined;
+        .delete();
 }

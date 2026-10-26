@@ -31,12 +31,12 @@ import { getPermissionsDetailsByRoleName } from "../repository/permission.repo";
 import { Knex } from "knex";
 import { RestaurantMember } from "../entity/restaurant-member.entity";
 import { findRestaurantById } from "../../restaurant/repository/restaurant.repo";
-import { RestaurantNotFoundError } from "../../branch/errors";
 import { inject, injectable } from "tsyringe";
 import { Tokens } from "../../../lib/di/tokens";
 import { UserService } from "../../user/service/user.service";
 import { memberInvitationEmail } from "../templates/member-invitation";
 import { NodemailerProvider } from "../../../pkg/email/nodemailer";
+import { RestaurantNotFoundError } from "../../restaurant/errors";
 
 @injectable()
 export class MemberService {

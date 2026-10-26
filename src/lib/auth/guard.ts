@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { NotAuthenticated } from "../errors";
+import { NotAuthenticated } from "../auth/errors";
 import { verfiyAccessToken } from "../../app/auth/utils";
 
 export function authenticate(req: Request, res: Response, next: NextFunction) {

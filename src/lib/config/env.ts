@@ -74,11 +74,9 @@ export const env = {
     internal: {
         apiKey: parsed.INTERNAL_API_KEY
     },
-    rabbitmq: {
+    rabbit: {
         url: parsed.RABBITMQ_URL,
-        exchange: parsed.RABBITMQ_CORE_EVENTS_EXCHANGE
-    },
-    outbox: {
+        exchange: parsed.RABBITMQ_CORE_EVENTS_EXCHANGE,
         drainCron: parsed.OUTBOX_DRAIN_CRON,
         batchSize: Number(parsed.OUTBOX_BATCH_SIZE)
     }

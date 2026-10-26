@@ -8,7 +8,6 @@ import {
     findProductByRestaurantId,
     updateProduct
 } from "../repository/product.repo";
-import { RestaurantNotFoundError, UnauthorizedError } from "../../branch/errors";
 import { findRestaurantById } from "../../restaurant/repository/restaurant.repo";
 import {
     createProductCategory,
@@ -20,7 +19,7 @@ import { ProductNotFoundError, InvalidReserveItemsError, outOfStockError } from 
 import { updateProductBranchDetails, findProductsForBranch } from "../repository/product-branch-details.repo";
 import { injectable } from "tsyringe";
 import { db } from "../../../lib/knex/knex";
-import { insertOutboxEvent, insertOutboxEvents } from "../../../lib/events/outbox.service";
+import { EVENT_TYPES } from "../../../lib/events/event-types";
 import { Knex } from "knex";
 import {
     ReserveStockInput,
@@ -28,6 +27,9 @@ import {
     ReserveStockResult,
     OutOfStockItem
 } from "../types";
+import { RestaurantNotFoundError } from "../../restaurant/errors";
+import { UnAuthorisedError } from "../../../lib/auth/errors";
+import { insertOutboxEvent, insertOutboxEvents } from "../../../lib/events/outbox.service";
 
 
 @injectable()
@@ -39,7 +41,7 @@ export class ProductService {
             throw RestaurantNotFoundError;
         }
         if (userRole !== SystemRole.SYSTEM_ADMIN && Number(restaurant.ownerId) !== Number(userId)) {
-            throw UnauthorizedError;
+            throw UnAuthorisedError;
         }
 
         let categoryId: number | undefined = undefined;
@@ -82,7 +84,7 @@ export class ProductService {
             throw RestaurantNotFoundError;
         }
         if (userRole !== SystemRole.SYSTEM_ADMIN && Number(restaurant.ownerId) !== Number(userId)) {
-            throw UnauthorizedError;
+            throw UnAuthorisedError;
         }
         return await findProductByRestaurantId(restaurantId);
     }
@@ -99,7 +101,7 @@ export class ProductService {
         }
 
         if (userRole !== SystemRole.SYSTEM_ADMIN && Number(restaurant.ownerId) !== Number(userId)) {
-            throw UnauthorizedError;
+            throw UnAuthorisedError;
         }
 
         let categoryId: number | undefined = undefined;
@@ -123,14 +125,14 @@ export class ProductService {
                 await insertOutboxEvent(trx, {
                     aggregateType: "product",
                     aggregateId: productId,
-                    eventType: "product.stock.changed",
+                    eventType: EVENT_TYPES.PRODUCT_STOCK_CHANGED,
                     payload: { branchId, productId, stock: data.stock }
                 });
 
                 await insertOutboxEvent(trx, {
                     aggregateType: "product",
                     aggregateId: productId,
-                    eventType: "product.price.changed",
+                    eventType: EVENT_TYPES.PRODUCT_PRICE_CHANGED,
                     payload: { branchId, productId, price: data.price }
                 });
 
@@ -163,7 +165,7 @@ export class ProductService {
         }
 
         if (userRole !== SystemRole.SYSTEM_ADMIN && Number(restaurant.ownerId) !== Number(userId)) {
-            throw UnauthorizedError;
+            throw UnAuthorisedError;
         }
         return await deleteProduct(productId);
     }
@@ -206,7 +208,7 @@ export class ProductService {
                 await insertOutboxEvents(trx, applied.map((a) => ({
                     aggregateType: "product",
                     aggregateId: a.productId,
-                    eventType: "product.stock.changed",
+                    eventType: EVENT_TYPES.PRODUCT_STOCK_CHANGED,
                     payload: { branchId, productId: a.productId, newStock: a.newStock },
                 })));
             }
@@ -262,7 +264,7 @@ export class ProductService {
             await insertOutboxEvents(trx, applied.map((a) => ({
                 aggregateType: "product",
                 aggregateId: a.productId,
-                eventType: "product.stock.changed",
+                eventType: EVENT_TYPES.PRODUCT_STOCK_CHANGED,
                 payload: { branchId, productId: a.productId, newStock: a.newStock },
             })));
 

@@ -8,14 +8,14 @@ import { ProductService } from "../../app/product/service/product.service";
 import { BranchService } from "../../app/branch/service/branch.service";
 import { RestaurantService } from "../../app/restaurant/service/restaurant.service";
 import { MemberService } from "../../app/rbac/service/member.service";
-import { CustomerAddressesService } from "../../app/customer-address/service/addresses.service";
+import { CustomerAddressesService } from "../../app/customer-address/service/customer-address.service";
 import { AuthController } from "../../app/auth/controller/auth.controller";
 import { UserController } from "../../app/user/controller/user.controller";
 import { ProductController } from "../../app/product/controller/product.controller";
 import { BranchController } from "../../app/branch/controller/branch.controller";
 import { RestaurantController } from "../../app/restaurant/controller/restaurant.controller";
 import { MemberController } from "../../app/rbac/controller/member.controller";
-import { CustomerAddressesController } from "../../app/customer-address/controller/addresses.controller";
+import { CustomerAddressesController } from "../../app/customer-address/controller/customer-address.controller";
 import { cacheProvider } from "../cache/init";
 import { emailProvider } from "../email/init";
 

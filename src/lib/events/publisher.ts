@@ -10,11 +10,11 @@ class CoreEventPublisher {
     async connect(): Promise<void> {
         if (this.connection) return;
 
-        this.connection = amqp.connect([env.rabbitmq.url]);
+        this.connection = amqp.connect([env.rabbit.url]);
         this.channel = this.connection.createChannel({
             json: false,
             setup: async (ch: ConfirmChannel) => {
-                await ch.assertExchange(env.rabbitmq.exchange, "topic", { durable: true });
+                await ch.assertExchange(env.rabbit.exchange, "topic", { durable: true });
             },
         });
 
@@ -25,15 +25,15 @@ class CoreEventPublisher {
     async publish(routingKey: string, payload: any): Promise<void> {
         await this.connect();
         const body = Buffer.from(JSON.stringify(payload));
-        await this.channel!.publish(env.rabbitmq.exchange, routingKey, body, {
+        await this.channel!.publish(env.rabbit.exchange, routingKey, body, {
             persistent: true,
             contentType: "application/json",
         });
     }
 
     async close(): Promise<void> {
-        await this.channel?.close().catch(() => {});
-        await this.connection?.close().catch(() => {});
+        await this.channel?.close().catch(() => { });
+        await this.connection?.close().catch(() => { });
         this.channel = null;
         this.connection = null;
     }

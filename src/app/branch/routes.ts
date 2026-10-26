@@ -12,9 +12,8 @@ export const branchRoutes = Router();
 
 const branchController = container.resolve<BranchController>(Tokens.BranchController);
 
-branchRoutes.get('/internal/branches', requireInternalApiKey, branchController.getInternalBranches);
-branchRoutes.get('/internal/branches/:id', requireInternalApiKey, branchController.getInternalBranch);
-
+branchRoutes.get('/internal/branches', requireInternalApiKey, withCache(60), branchController.findByIdsWithRestaurant);
+branchRoutes.get('/internal/branches/:id', requireInternalApiKey, withCache(60), branchController.findByIdWithRestaurant);
 
 branchRoutes.post('/restaurants/:restaurantId/branches',
     authenticate,
