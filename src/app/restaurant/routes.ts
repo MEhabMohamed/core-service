@@ -5,14 +5,14 @@ import { Tokens } from "../../lib/di/tokens";
 import { container } from "../../lib/di/container";
 import { RestaurantController } from "./controller/restaurant.controller";
 
-export const restaurantRoutes = Router();
+export const restaurantRouter = Router();
 
 const restaurantController = container.resolve<RestaurantController>(Tokens.RestaurantController);
 
-restaurantRoutes.get("/", restaurantController.findAll);
-restaurantRoutes.get("/:id", restaurantController.findRestaurantById);
-restaurantRoutes.post("/", authenticate, restaurantController.create);
-restaurantRoutes.patch("/:id",
+restaurantRouter.get("/", restaurantController.findAll);
+restaurantRouter.get("/:id", restaurantController.findRestaurantById);
+restaurantRouter.post("/", authenticate, restaurantController.create);
+restaurantRouter.patch("/:id",
     authenticate,
     rbac({
         resource: "core:restaurant",
@@ -20,6 +20,6 @@ restaurantRoutes.patch("/:id",
     }),
     requireRestaurantMember("id"),
     restaurantController.update);
-restaurantRoutes.patch("/:id/status",
+restaurantRouter.patch("/:id/status",
     authenticate,
     restaurantController.updateStatus);

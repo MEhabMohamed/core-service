@@ -22,8 +22,8 @@ function toEntity(row: any): ProductBranchDetails {
     });
 }
 
-export async function updateProductBranchDetails(productId: number, branchId: number, data: { price?: number, stock?: number, isAvailable?: boolean }): Promise<ProductBranchDetails> {
-    const [row] = await db('product_branch_details')
+export async function updateProductBranchDetails(productId: number, branchId: number, data: { price?: number, stock?: number, isAvailable?: boolean }, conn: Knex = db): Promise<ProductBranchDetails> {
+    const [row] = await conn('product_branch_details')
         .where({ product_id: productId, branch_id: branchId })
         .update({
             price: data.price,

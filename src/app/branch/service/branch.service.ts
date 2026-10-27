@@ -116,7 +116,7 @@ export class BranchService {
             const res = await updateBranch(branchId, data, trx);
 
             await insertOutboxEvent(trx, {
-                aggregateType: "branch",
+                aggregateType: "restaurant_branches",
                 aggregateId: branchId,
                 eventType: EVENT_TYPES.BRANCH_UPDATED,
                 payload: { branchId }
@@ -146,7 +146,7 @@ export class BranchService {
             const res = await updateBranchStatus(branchId, data, trx);
 
             await insertOutboxEvent(trx, {
-                aggregateType: "branch",
+                aggregateType: "restaurant_branches",
                 aggregateId: branchId,
                 eventType: data.isActive ? EVENT_TYPES.BRANCH_UPDATED : EVENT_TYPES.BRANCH_DEACTIVATED,
                 payload: { branchId }

@@ -105,9 +105,3 @@ export async function updateProduct(id: number, data: Partial<Product>) {
         .returning(PRODUCT_COLUMNS);
     return toEntity(row);
 }
-
-export async function deleteProduct(id: number) {
-    await db('products')
-        .where({ id })
-        .delete();
-}

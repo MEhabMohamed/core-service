@@ -1,23 +1,27 @@
 import { Router } from "express";
 import { authenticate } from "../../lib/auth/guard";
-import { rbac, requireBranchAccess, requireRestaurantMember } from "../../lib/auth/rbac";
+import {
+    rbac,
+    requireBranchAccess,
+    requireRestaurantMember
+} from "../../lib/auth/rbac";
 import { container } from "../../lib/di/container";
 import { Tokens } from "../../lib/di/tokens";
 import { ProductController } from "./controller/product.controller";
 
 import { requireInternalApiKey } from "../../lib/auth/api-key";
 
-export const productRoutes = Router();
+export const productRouter = Router();
 
 const productController = container.resolve<ProductController>(Tokens.ProductController);
 
-productRoutes.get('/internal/branches/:id/products', requireInternalApiKey, productController.getInternalBranchProducts);
-productRoutes.post('/internal/branches/:id/reserve-stock', requireInternalApiKey, productController.reserveStock);
-productRoutes.post('/internal/branches/:id/release-stock', requireInternalApiKey, productController.releaseStock);
+productRouter.get('/internal/branches/:id/products', requireInternalApiKey, productController.findByBranchAndIds);
+productRouter.post('/internal/branches/:id/reserve-stock', requireInternalApiKey, productController.reserveStock);
+productRouter.post('/internal/branches/:id/release-stock', requireInternalApiKey, productController.releaseStock);
 
 
 
-productRoutes.post("/restaurants/:restaurantId/products",
+productRouter.post("/restaurants/:restaurantId/products",
     authenticate,
     rbac({
         resource: "core:product",
@@ -25,7 +29,7 @@ productRoutes.post("/restaurants/:restaurantId/products",
     }),
     requireRestaurantMember("restaurantId"),
     productController.createProduct);
-productRoutes.get("/restaurants/:restaurantId/products",
+productRouter.get("/restaurants/:restaurantId/products",
     authenticate,
     rbac({
         resource: "core:product",
@@ -33,8 +37,8 @@ productRoutes.get("/restaurants/:restaurantId/products",
     }),
     requireRestaurantMember("restaurantId"),
     productController.findProductByRestaurant);
-productRoutes.get("/products/:productId", productController.findProduct);
-productRoutes.patch("/products/:productId",
+productRouter.get("/products/:productId", productController.findProduct);
+productRouter.patch("/products/:productId",
     authenticate,
     rbac({
         resource: "core:product",
@@ -42,6 +46,5 @@ productRoutes.patch("/products/:productId",
     }),
     requireBranchAccess("branchId"),
     productController.updateProduct);
-productRoutes.delete("/products/:productId", authenticate, productController.deleteProduct);
-productRoutes.get("/restaurants/:restaurantId/categories", productController.findCategoriesByRestaurant);
-productRoutes.get("/branches/:branchId/products", productController.findProductByBranch);
+productRouter.get("/restaurants/:restaurantId/categories", productController.findCategoriesByRestaurant);
+productRouter.get("/branches/:branchId/products", productController.findProductByBranch);

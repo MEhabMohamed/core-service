@@ -2,7 +2,7 @@ import { Response, Request, NextFunction } from "express";
 import { ProductService } from "../service/product.service";
 import { validateBody } from "../../../lib/validation/validate";
 import { CreateProductDTO, UpdateProductDTO } from "../dto/product.dto";
-import { InvalidReserveItemsError } from "../errors";
+import { InvalidReserveItemsError, MissingProductIdsQueryError } from "../errors";
 import { SystemRole } from "../../user/enums";
 import { injectable, inject } from "tsyringe";
 import { Tokens } from "../../../lib/di/tokens";
@@ -81,27 +81,16 @@ export class ProductController {
         }
     }
 
-    deleteProduct = async (req: Request, res: Response, next: NextFunction) => {
-        try {
-            const result = await this.productService.deleteProduct(Number(req.params.productId), Number(req.user?.userId), req.user?.role as SystemRole);
-            sendSuccess(res,
-                { message: "Product deleted successfully", data: result },
-                httpStatus.OK
-            );
-        } catch (error) {
-            next(error)
-        }
-    }
-
-    getInternalBranchProducts = async (req: Request, res: Response, next: NextFunction) => {
+    findByBranchAndIds = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const branchId = Number(req.params.id);
-            const idsStr = String(req.query.ids || "");
-            const productIds = idsStr.split(",").map(id => Number(id.trim())).filter(id => !isNaN(id) && id > 0);
-            const products = await this.productService.findProductsForBranch(branchId, productIds);
-            sendSuccess(res, products, httpStatus.OK);
-        } catch (error) {
-            next(error);
+            const raw = typeof req.query.ids === "string" ? req.query.ids : "";
+            const ids = raw.split(",").map((s) => Number(s.trim())).filter((n) => Number.isInteger(n) && n > 0);
+            if (ids.length === 0) throw MissingProductIdsQueryError;
+            const products = await this.productService.findByBranchAndIds(branchId, ids);
+            sendSuccess(res, products);
+        } catch (err) {
+            next(err);
         }
     }
 
