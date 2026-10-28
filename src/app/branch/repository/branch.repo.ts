@@ -19,7 +19,8 @@ const BRANCH_COLUMNS = [
     'updated_at',
     'delivery_radius',
     'currency',
-    'commission'
+    'commission',
+    'delivery_fee'
 ];
 
 function toEntity(row: any): Branch {
@@ -39,7 +40,8 @@ function toEntity(row: any): Branch {
         updatedAt: row.updated_at,
         deliveryRadius: row.delivery_radius,
         currency: row.currency,
-        commission: row.commission
+        commission: row.commission,
+        deliveryFee: row.delivery_fee != null ? Number(row.delivery_fee) : 10
     });
 }
 
@@ -60,7 +62,8 @@ export async function createBranch(data: Partial<Branch>, conn: Knex = db) {
             updated_at: data.updatedAt,
             delivery_radius: data.deliveryRadius,
             currency: data.currency,
-            commission: data.commission
+            commission: data.commission,
+            delivery_fee: data.deliveryFee
         })
         .returning(BRANCH_COLUMNS);
 

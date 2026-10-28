@@ -17,6 +17,7 @@ export class Branch {
     deliveryRadius: number;
     currency: Currency;
     commission: number;
+    deliveryFee: number;
 
     constructor(branch: Partial<Branch>) {
         this.id = branch.id!;
@@ -35,5 +36,6 @@ export class Branch {
         this.deliveryRadius = branch.deliveryRadius ?? 0;
         this.currency = branch.currency!;
         this.commission = branch.commission ?? 0;
+        this.deliveryFee = branch.deliveryFee ?? 0;
     }
 }
