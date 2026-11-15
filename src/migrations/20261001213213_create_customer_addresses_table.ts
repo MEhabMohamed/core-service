@@ -11,12 +11,12 @@ export async function up(knex: Knex): Promise<void> {
             city TEXT NOT NULL,
             street TEXT NOT NULL,
             building TEXT,
-            aparment_number TEXT,
+            apartment_number TEXT,
             type TEXT NOT NULL CHECK(type IN ('home', 'work', 'public_place')), 
             lat DECIMAL(10, 7) NOT NULL,
             lng DECIMAL(10, 7) NOT NULL,
             is_default BOOLEAN NOT NULL,
-            created_at TIMESTAMP NOT NULL
+            created_at TIMESTAMP NOT NULL,
 
             CONSTRAINT fk_customer_addresses_user_id FOREIGN KEY (user_id) REFERENCES users(id)
         );

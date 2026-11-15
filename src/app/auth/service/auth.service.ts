@@ -40,7 +40,7 @@ import {
 } from "../utils";
 import { Tokens } from "../../../lib/di/tokens";
 import { passwordResetEmail } from "../templates/reset-password.template";
-import { IEmailProvider } from "../../../pkg/email/email.interface";
+import type { IEmailProvider } from "../../../pkg/email/email.interface";
 
 @injectable()
 export class AuthService {
