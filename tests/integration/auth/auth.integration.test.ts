@@ -1,6 +1,6 @@
 import "reflect-metadata";
 import request from "supertest";
-import { EmailStub, emailStub } from "../../helpers/stub/email-stub";
+import { emailStub } from "../../helpers/stub/email-stub";
 import { truncateAll } from "../../helpers/db";
 
 jest.mock("../../../src/lib/email/init", () => ({
