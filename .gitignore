@@ -10,3 +10,4 @@ docs
 implementation-instructions.md
 .env.test
 docker-compose.yml
+docker-compose.test.yml
