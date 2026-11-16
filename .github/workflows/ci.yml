@@ -17,8 +17,8 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run tests
-        run: docker compose -f docker-compose.test.yml run --rm test
+        run: docker compose -f docker-compose.test.example.yml run --rm test
 
       - name: Stop containers
         if: always()
-        run: docker compose -f docker-compose.test.yml down -v
+        run: docker compose -f docker-compose.test.example.yml down -v

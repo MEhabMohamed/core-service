@@ -19,6 +19,8 @@ dockerfile
 .dockerignore
 docker-compose.yml
 docker-compose.example.yml
+docker-compose.test.yml
+docker-compose.test.example.yml
 *.zip
 *.7z
 
