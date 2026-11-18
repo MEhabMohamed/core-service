@@ -7,3 +7,4 @@ export const CannotDeleteOwnerError = new AppError('Cannot delete the restaurant
 export const UpdateMemberError = new AppError("Please specify a role or status", 400);
 export const InvalidBranchIdsError = new AppError('One or more branch IDs do not belong to this restaurant', 400);
 export const BranchesNotAssignableToOwnerError = new AppError('Cannot assign branches to owners, they have access to all branches', 400);
+export const RoleQueryRequiredError = new AppError('role query parameter is required', 400);

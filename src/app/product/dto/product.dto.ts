@@ -20,8 +20,8 @@ export class CreateProductDTO {
 
 export class UpdateProductDTO {
     @IsString()
-    @IsNotEmpty()
-    name!: string;
+    @IsOptional()
+    name?: string;
 
     @IsString()
     @IsOptional()

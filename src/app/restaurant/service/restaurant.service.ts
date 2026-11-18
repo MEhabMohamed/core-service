@@ -64,7 +64,7 @@ export class RestaurantService {
                 phone: data.owner.phone,
                 password: data.owner.password,
                 systemRole: SystemRole.RESTAURANT_USER
-            })
+            }, trx)
 
             restaurant = await createRestaurant(new Restaurant({
                 ownerId: user.id,

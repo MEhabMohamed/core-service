@@ -2,6 +2,7 @@ import { Response, Request, NextFunction } from "express";
 import { MemberService } from "../service/member.service";
 import { validateBody } from "../../../lib/validation/validate";
 import { CreateMemberDTO, UpdateMemberBranchesDTO, UpdateMemberDTO } from "../dto/member.dto";
+import { RoleQueryRequiredError } from "../errors";
 import { inject, injectable } from "tsyringe";
 import { Tokens } from "../../../lib/di/tokens";
 import { httpStatus, sendSuccess } from "../../../lib/http/response";
@@ -84,8 +85,9 @@ export class MemberController {
 
     getInternalRolePermissions = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const role = (req.query.role || req.params.role) as string;
-            const result = await this.memberService.getRolePermissions(role);
+            const role = String(req.query.role ?? req.params.role ?? "");
+            if (!role) throw RoleQueryRequiredError;
+            const result = await this.memberService.getPermissionsByRole(role);
             sendSuccess(res, result, httpStatus.OK);
         } catch (error) {
             next(error);

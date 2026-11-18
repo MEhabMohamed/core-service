@@ -27,7 +27,7 @@ import { countBranchesByIdsAndRestaurantId, setMemberBranch } from "../repositor
 import { toMs } from "../../../pkg/utils/times";
 import { createPasswordReset } from "../../auth/repository/password-reset.repo";
 import { generateOTP, hashOTP } from "../../auth/utils";
-import { getPermissionsDetailsByRoleName } from "../repository/permission.repo";
+import { getPermissionByRoleName, getPermissionsDetailsByRoleName } from "../repository/permission.repo";
 import { Knex } from "knex";
 import { RestaurantMember } from "../entity/restaurant-member.entity";
 import { findRestaurantById } from "../../restaurant/repository/restaurant.repo";
@@ -78,7 +78,7 @@ export class MemberService {
                 phone: data.phoneNumber,
                 password: "",
                 systemRole: SystemRole.RESTAURANT_USER
-            })
+            }, trx)
 
             const member = await createRestaurantMember({
                 userId: user.id,
@@ -103,7 +103,7 @@ export class MemberService {
             await createPasswordReset({
                 userId: user.id,
                 otpHash: hashedOtp,
-                expiresAt: new Date(Date.now() + toMs.minute(10)),
+                expiresAt: new Date(Date.now() + toMs.day(7)),
                 createdAt: new Date()
             }, trx)
 
@@ -145,14 +145,16 @@ export class MemberService {
             throw MemberNotFoundError
         }
 
-        const roleId = await findRoleByName(data.role)
-
-        if (!roleId) {
-            throw RoleNotFoundError
-        }
-
         if (!data.role && !data.status) {
             throw UpdateMemberError;
+        }
+
+        let roleId: number | undefined;
+        if (data.role) {
+            roleId = (await findRoleByName(data.role)) ?? undefined;
+            if (!roleId) {
+                throw RoleNotFoundError;
+            }
         }
 
         return await updateMember(memberId, roleId, data.status)
@@ -160,6 +162,12 @@ export class MemberService {
 
     getRolePermissions = async (roleName: string) => {
         const permissions = await getPermissionsDetailsByRoleName(roleName);
+
+        return { role: roleName, permissions };
+    }
+
+    getPermissionsByRole = async (roleName: string) => {
+        const permissions = await getPermissionByRoleName(roleName);
 
         return { role: roleName, permissions };
     }

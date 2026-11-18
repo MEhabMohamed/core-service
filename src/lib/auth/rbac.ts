@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { NotAuthenticated } from "../auth/errors";
+import { NotAuthenticated, UnAuthorisedError } from "../auth/errors";
 import { SystemRole } from "../../app/user/enums";
 import { PermissionCacheService } from "../../app/rbac/service/permission-cache.service";
 import { Tokens } from "../di/tokens";
@@ -52,6 +52,12 @@ export function rbac(options: RBACOptions) {
     }
 }
 
+export function requireSystemRole(userRole: SystemRole, allowed: SystemRole[]) {
+    if (!allowed.includes(userRole)) {
+        throw UnAuthorisedError;
+    }
+}
+
 export function requireRestaurantMember(paramName: string = "restaurantId") {
     return async (req: Request, res: Response, next: NextFunction) => {
         try {
@@ -96,16 +102,14 @@ export function requireBranchAccess(paramName: string = "branchId") {
                 return next();
             }
 
-            if (req.user?.branchIds !== undefined) {
-                if (!req.user.branchIds.includes(branchId)) {
-                    return res.status(403).json({
-                        message: "Permission denied"
-                    })
-                }
-                return next();
+            const userBranchIds = req.user?.branchIds || [];
+            if (!userBranchIds.includes(branchId)) {
+                return res.status(403).json({
+                    message: "Permission denied"
+                });
             }
 
-            next();
+            return next();
 
         } catch (error) {
             next(error)

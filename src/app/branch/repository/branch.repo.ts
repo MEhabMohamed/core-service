@@ -41,7 +41,7 @@ function toEntity(row: any): Branch {
         deliveryRadius: row.delivery_radius,
         currency: row.currency,
         commission: row.commission,
-        deliveryFee: row.delivery_fee != null ? Number(row.delivery_fee) : 10
+        deliveryFee: row.delivery_fee != null ? Number(row.delivery_fee) : 0
     });
 }
 
@@ -130,14 +130,13 @@ export async function updateBranch(branchId: number, data: Partial<Branch>, conn
             label: data.label,
             lat: data.lat,
             lng: data.lng,
-            is_active: data.isActive,
             opens_at: data.opensAt,
             closes_at: data.closesAt,
             accept_orders: data.acceptOrders,
             updated_at: new Date(),
             delivery_radius: data.deliveryRadius,
             currency: data.currency,
-            commission: data.commission
+            delivery_fee: data.deliveryFee
         })
         .returning(BRANCH_COLUMNS);
 

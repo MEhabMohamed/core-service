@@ -11,6 +11,7 @@ const customerAddressesController = container.
     resolve<CustomerAddressesController>(Tokens.CustomerAddressesController);
 
 adressRouter.get("/internal/:id", requireInternalApiKey, customerAddressesController.getInternalAddress);
+adressRouter.get("/", authenticate, customerAddressesController.getAll);
 adressRouter.post("/", authenticate, customerAddressesController.createAddress);
 
 adressRouter.get("/:addressId", authenticate, customerAddressesController.getAddressById);

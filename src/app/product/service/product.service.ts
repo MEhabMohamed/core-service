@@ -121,7 +121,7 @@ export class ProductService {
         });
 
         let branchDetails;
-        if (branchId && data.price !== undefined && data.stock !== undefined && data.isAvailable !== undefined) {
+        if (branchId && (data.price !== undefined || data.stock !== undefined || data.isAvailable !== undefined)) {
             const trx = await db.transaction();
             try {
                 const details = await updateProductBranchDetails(productId, branchId, {
@@ -135,7 +135,12 @@ export class ProductService {
                         aggregateType: "product_branch_details",
                         aggregateId: `${branchId}:${productId}`,
                         eventType: EVENT_TYPES.PRODUCT_STOCK_CHANGED,
-                        payload: { branchId, productId, stock: data.stock }
+                        payload: {
+                            branchId,
+                            productId,
+                            newStock: details.stock,
+                            isAvailable: details.isAvailable
+                        }
                     });
                 }
                 if (data.price !== undefined) {
@@ -143,7 +148,7 @@ export class ProductService {
                         aggregateType: "product_branch_details",
                         aggregateId: `${branchId}:${productId}`,
                         eventType: EVENT_TYPES.PRODUCT_PRICE_CHANGED,
-                        payload: { branchId, productId, price: data.price }
+                        payload: { branchId, productId, newPrice: details.price }
                     });
                 }
                 await trx.commit();

@@ -33,7 +33,12 @@ const schema = z.object({
     RABBITMQ_URL: z.string().default("amqp://guest:guest@localhost:5672"),
     RABBITMQ_CORE_EVENTS_EXCHANGE: z.string().default("core.events"),
     OUTBOX_DRAIN_CRON: z.string().default("* * * * * *"),
-    OUTBOX_BATCH_SIZE: z.string().default("50")
+    OUTBOX_BATCH_SIZE: z.string().default("50"),
+    AWS_REGION: z.string().default("us-east-1"),
+    AWS_S3_BUCKET: z.string().default(""),
+    AWS_ACCESS_KEY_ID: z.string().default(""),
+    AWS_SECRET_ACCESS_KEY: z.string().default(""),
+    CDN_URL: z.string().default("")
 });
 
 const parsed = schema.parse(process.env);
@@ -79,5 +84,12 @@ export const env = {
         exchange: parsed.RABBITMQ_CORE_EVENTS_EXCHANGE,
         drainCron: parsed.OUTBOX_DRAIN_CRON,
         batchSize: Number(parsed.OUTBOX_BATCH_SIZE)
+    },
+    aws: {
+        region: parsed.AWS_REGION,
+        s3Bucket: parsed.AWS_S3_BUCKET,
+        accessKeyId: parsed.AWS_ACCESS_KEY_ID,
+        secretAccessKey: parsed.AWS_SECRET_ACCESS_KEY,
+        cdnUrl: parsed.CDN_URL
     }
 };

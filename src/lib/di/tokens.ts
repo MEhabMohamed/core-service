@@ -8,6 +8,7 @@ export const Tokens = {
     PermissionCacheService: Symbol.for("PermissionCacheService"),
     MemberService: Symbol.for("MemberService"),
     CustomerAddressesService: Symbol.for("CustomerAddressesService"),
+    MediaService: Symbol.for("MediaService"),
 
     // controllers
     AuthController: Symbol.for("AuthController"),
@@ -17,9 +18,11 @@ export const Tokens = {
     RestaurantController: Symbol.for("RestaurantController"),
     MemberController: Symbol.for("MemberController"),
     CustomerAddressesController: Symbol.for("CustomerAddressesController"),
+    MediaController: Symbol.for("MediaController"),
 
     // libs/infra
     Logger: Symbol.for("Logger"),
     CacheProvider: Symbol.for("CacheProvider"),
-    EmailProvider: Symbol.for("EmailProvider")
+    EmailProvider: Symbol.for("EmailProvider"),
+    StorageProvider: Symbol.for("StorageProvider")
 }

@@ -16,8 +16,11 @@ import { BranchController } from "../../app/branch/controller/branch.controller"
 import { RestaurantController } from "../../app/restaurant/controller/restaurant.controller";
 import { MemberController } from "../../app/rbac/controller/member.controller";
 import { CustomerAddressesController } from "../../app/customer-address/controller/customer-address.controller";
+import { MediaService } from "../../app/media/service/media.service";
+import { MediaController } from "../../app/media/controller/media.controller";
 import { cacheProvider } from "../cache/init";
 import { emailProvider } from "../email/init";
+import { storageProvider } from "../storage/init";
 
 container.registerSingleton(Tokens.Logger, Logger);
 
@@ -30,6 +33,7 @@ container.registerSingleton(Tokens.BranchService, BranchService);
 container.registerSingleton(Tokens.RestaurantService, RestaurantService);
 container.registerSingleton(Tokens.MemberService, MemberService);
 container.registerSingleton(Tokens.CustomerAddressesService, CustomerAddressesService);
+container.registerSingleton(Tokens.MediaService, MediaService);
 
 // controllers
 container.registerSingleton(Tokens.AuthController, AuthController);
@@ -39,9 +43,11 @@ container.registerSingleton(Tokens.BranchController, BranchController);
 container.registerSingleton(Tokens.RestaurantController, RestaurantController);
 container.registerSingleton(Tokens.MemberController, MemberController);
 container.registerSingleton(Tokens.CustomerAddressesController, CustomerAddressesController);
+container.registerSingleton(Tokens.MediaController, MediaController);
 
 // libs
 container.registerInstance(Tokens.CacheProvider, cacheProvider);
 container.registerInstance(Tokens.EmailProvider, emailProvider);
+container.registerInstance(Tokens.StorageProvider, storageProvider);
 
 export { container }

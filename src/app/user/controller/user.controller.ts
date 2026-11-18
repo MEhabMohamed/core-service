@@ -3,6 +3,8 @@ import { Request, Response, NextFunction } from "express";
 import { inject, injectable } from "tsyringe";
 import { Tokens } from "../../../lib/di/tokens";
 import { httpStatus, sendSuccess } from "../../../lib/http/response";
+import { validateBody } from "../../../lib/validation/validate";
+import { UserUpdateDTO } from "../dto/user.dto";
 
 @injectable()
 export class UserController {
@@ -20,7 +22,8 @@ export class UserController {
 
     updateUserProfile = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const user = await this.userService.updateUserProfile(req.user?.userId!, req.body);
+            const data = await validateBody(UserUpdateDTO, req.body);
+            const user = await this.userService.updateUserProfile(req.user?.userId!, data);
             sendSuccess(res, { message: "User profile updated successfully", data: user }, httpStatus.OK);
         } catch (error) {
             next(error);

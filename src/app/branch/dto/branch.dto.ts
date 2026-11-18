@@ -73,16 +73,13 @@ export class UpdateBranchDTO {
     currency?: Currency;
 
     @IsNumber()
+    @Min(0)
     @IsOptional()
-    commission?: number;
+    deliveryFee?: number;
 
     @IsBoolean()
     @IsOptional()
     acceptOrders?: boolean;
-
-    @IsBoolean()
-    @IsOptional()
-    isActive?: boolean;
 }
 
 export class UpdateBranchStatusDTO {

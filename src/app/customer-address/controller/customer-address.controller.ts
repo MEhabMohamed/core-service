@@ -34,9 +34,18 @@ export class CustomerAddressesController {
         }
     }
 
+    getAll = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const addresses = await this.addressesService.getByUserId(req.user?.userId!);
+            sendSuccess(res, addresses, httpStatus.OK);
+        } catch (error) {
+            next(error);
+        }
+    }
+
     getAddressById = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const address = await this.addressesService.getAddressById(Number(req.params.addressId));
+            const address = await this.addressesService.getAddressById(Number(req.params.addressId), req.user?.userId!);
             sendSuccess(res, address, httpStatus.OK);
         } catch (error) {
             next(error);

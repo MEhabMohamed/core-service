@@ -148,7 +148,7 @@ export class BranchService {
             await insertOutboxEvent(trx, {
                 aggregateType: "restaurant_branches",
                 aggregateId: branchId,
-                eventType: data.isActive ? EVENT_TYPES.BRANCH_UPDATED : EVENT_TYPES.BRANCH_DEACTIVATED,
+                eventType: data.isActive === false ? EVENT_TYPES.BRANCH_DEACTIVATED : EVENT_TYPES.BRANCH_UPDATED,
                 payload: { branchId }
             });
             await trx.commit();

@@ -7,6 +7,7 @@ import { restaurantRouter } from "./app/restaurant/routes";
 import { branchRouter } from "./app/branch/routes";
 import { productRouter } from "./app/product/routes";
 import { rbacRouter } from "./app/rbac/routes";
+import { mediaRouter } from "./app/media/routes";
 
 export const routes = Router();
 
@@ -15,6 +16,7 @@ routes.use("/auth", authRouter);
 routes.use("/user", userRouter);
 routes.use("/customer/addresses", adressRouter);
 routes.use("/restaurants", restaurantRouter);
+routes.use("/media", mediaRouter);
 routes.use("/", branchRouter);
 routes.use("/", productRouter);
 routes.use("/", rbacRouter);

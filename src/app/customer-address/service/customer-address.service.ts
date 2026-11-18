@@ -57,10 +57,10 @@ export class CustomerAddressesService {
         return toResponse(address);
     }
 
-    getAddressById = async (id: number) => {
+    getAddressById = async (id: number, userId?: number) => {
         const address = await findAddressById(id);
 
-        if (!address) {
+        if (!address || (userId !== undefined && Number(address.userId) !== Number(userId))) {
             throw AddressNotFoundError;
         }
 
